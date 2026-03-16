@@ -1,6 +1,6 @@
 {
-  "name": "Mon TabView",
-  "short_name": "TabView",
+  "name": "Mathschool",
+  "short_name": "Mathschool",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
