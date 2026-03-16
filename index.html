@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TabView Exemple</title>
+
+<!-- Lien vers le manifest pour PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#007BFF">
+
 <style>
 body {
     font-family: Arial, sans-serif;
@@ -78,6 +83,12 @@ tabs.forEach(tab => {
         document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
     });
 });
+
+// Enregistrement du service worker pour PWA
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js')
+    .then(() => console.log('Service Worker enregistré'));
+}
 </script>
 
 </body>
