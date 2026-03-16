@@ -3,11 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TabView Exemple</title>
+<title>MathApp</title>
 
-<!-- Lien vers le manifest pour PWA -->
+<!-- PWA manifest -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#007BFF">
+
+<!-- Favicon et Apple touch icon -->
+<link rel="icon" href="Icon app maths.jpg" sizes="512x512" type="image/jpeg">
+<link rel="apple-touch-icon" href="Icon app maths.jpg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
 <style>
 body {
@@ -50,18 +56,22 @@ body {
 </head>
 <body>
 
-<h1>MathSchool</h1>
+<h1>Exemple TabView</h1>
 
 <div class="tabs">
-    <div class="tab active" data-tab="1"> Chat </div>
-    <div class="tab" data-tab="2"> Paramètres </div>
+    <div class="tab active" data-tab="1">Onglet 1</div>
+    <div class="tab" data-tab="2">Onglet 2</div>
+    <div class="tab" data-tab="3">Onglet 3</div>
 </div>
 
 <div class="tab-content active" id="tab-1">
-    <p> Chat </p>
+    <p>Contenu de l'onglet 1.</p>
 </div>
 <div class="tab-content" id="tab-2">
-    <p> Settings </p>
+    <p>Contenu de l'onglet 2.</p>
+</div>
+<div class="tab-content" id="tab-3">
+    <p>Contenu de l'onglet 3.</p>
 </div>
 
 <script>
@@ -70,17 +80,14 @@ const contents = document.querySelectorAll('.tab-content');
 
 tabs.forEach(tab => {
     tab.addEventListener('click', () => {
-        // Désactiver tous les onglets et contenus
         tabs.forEach(t => t.classList.remove('active'));
         contents.forEach(c => c.classList.remove('active'));
-
-        // Activer celui cliqué
         tab.classList.add('active');
         document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
     });
 });
 
-// Enregistrement du service worker pour PWA
+// Service worker pour PWA
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js')
     .then(() => console.log('Service Worker enregistré'));
