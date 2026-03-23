@@ -1,97 +1,230 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MathApp</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CYBER-RUNNER 2026</title>
+    <style>
+        body {
+            margin: 0;
+            background: #050505;
+            color: #0ff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
 
-<!-- PWA manifest -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#007BFF">
+        #game-container {
+            position: relative;
+            border: 2px solid #0ff;
+            box-shadow: 0 0 20px #0ff;
+        }
 
-<!-- Favicon et Apple touch icon -->
-<link rel="icon" href="Icon app maths.jpg" sizes="512x512" type="image/jpeg">
-<link rel="apple-touch-icon" href="Icon app maths.jpg">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+        canvas {
+            display: block;
+            background: linear-gradient(to bottom, #000, #111);
+        }
 
-<style>
-body {
-    font-family: Arial, sans-serif;
-    padding: 20px;
-    background-color: #f5f5f5;
-}
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            pointer-events: none;
+        }
 
-.tabs {
-    display: flex;
-    cursor: pointer;
-    margin-bottom: 10px;
-}
+        .menu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 30px;
+            border: 1px solid #0ff;
+            border-radius: 10px;
+        }
 
-.tab {
-    padding: 10px 20px;
-    background: #ddd;
-    margin-right: 2px;
-    border-radius: 5px 5px 0 0;
-    transition: background 0.3s;
-}
+        button {
+            background: transparent;
+            color: #0ff;
+            border: 2px solid #0ff;
+            padding: 10px 20px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: 0.3s;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
 
-.tab.active {
-    background: #fff;
-    font-weight: bold;
-    border-bottom: 2px solid #fff;
-}
+        button:hover {
+            background: #0ff;
+            color: #000;
+            box-shadow: 0 0 15px #0ff;
+        }
 
-.tab-content {
-    background: #fff;
-    padding: 20px;
-    border-radius: 0 5px 5px 5px;
-    display: none;
-}
-
-.tab-content.active {
-    display: block;
-}
-</style>
+        h1 { margin-top: 0; letter-spacing: 5px; }
+        .hidden { display: none; }
+    </style>
 </head>
 <body>
 
-<h1>Exemple TabView</h1>
+<div id="game-container">
+    <div id="ui"> SCORE: <span id="score">0</span> | NIVEAU: <span id="level">1</span> </div>
+    
+    <canvas id="gameCanvas"></canvas>
 
-<div class="tabs">
-    <div class="tab active" data-tab="1">Onglet 1</div>
-    <div class="tab" data-tab="2">Onglet 2</div>
-    <div class="tab" data-tab="3">Onglet 3</div>
-</div>
+    <div id="start-menu" class="menu">
+        <h1>CYBER-RUNNER</h1>
+        <p>Esquivez les blocs rouges le plus longtemps possible.</p>
+        <p><small>Utilisez les flèches ou la souris</small></p>
+        <button onclick="startGame()">Lancer le Système</button>
+    </div>
 
-<div class="tab-content active" id="tab-1">
-    <p>Contenu de l'onglet 1.</p>
-</div>
-<div class="tab-content" id="tab-2">
-    <p>Contenu de l'onglet 2.</p>
-</div>
-<div class="tab-content" id="tab-3">
-    <p>Contenu de l'onglet 3.</p>
+    <div id="game-over" class="menu hidden">
+        <h1 style="color: #f0f;">SYSTÈME CRASHÉ</h1>
+        <p>Score Final: <span id="final-score">0</span></p>
+        <button onclick="startGame()">Réinitialiser</button>
+    </div>
 </div>
 
 <script>
-const tabs = document.querySelectorAll('.tab');
-const contents = document.querySelectorAll('.tab-content');
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+    const levelEl = document.getElementById('level');
+    const finalScoreEl = document.getElementById('final-score');
+    const startMenu = document.getElementById('start-menu');
+    const gameOverMenu = document.getElementById('game-over');
 
-tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-        tabs.forEach(t => t.classList.remove('active'));
-        contents.forEach(c => c.classList.remove('active'));
-        tab.classList.add('active');
-        document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
-    });
-});
+    canvas.width = 400;
+    canvas.height = 600;
 
-// Service worker pour PWA
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js')
-    .then(() => console.log('Service Worker enregistré'));
-}
+    let player, obstacles, score, gameActive, speed, frame;
+
+    class Player {
+        constructor() {
+            this.width = 30;
+            this.height = 30;
+            this.x = canvas.width / 2 - 15;
+            this.y = canvas.height - 60;
+            this.color = '#0ff';
+        }
+
+        draw() {
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = this.color;
+            ctx.fillStyle = this.color;
+            ctx.fillRect(this.x, this.y, this.width, this.height);
+            ctx.shadowBlur = 0;
+        }
+
+        update(mouseX) {
+            let targetX = mouseX - canvas.getBoundingClientRect().left - this.width / 2;
+            this.x += (targetX - this.x) * 0.15; // Smooth movement
+            // Limites
+            if (this.x < 0) this.x = 0;
+            if (this.x > canvas.width - this.width) this.x = canvas.width - this.width;
+        }
+    }
+
+    class Obstacle {
+        constructor(speed) {
+            this.width = Math.random() * 60 + 20;
+            this.height = 20;
+            this.x = Math.random() * (canvas.width - this.width);
+            this.y = -20;
+            this.speed = speed;
+            this.color = '#f06';
+        }
+
+        draw() {
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = this.color;
+            ctx.fillStyle = this.color;
+            ctx.fillRect(this.x, this.y, this.width, this.height);
+            ctx.shadowBlur = 0;
+        }
+
+        update() {
+            this.y += this.speed;
+        }
+    }
+
+    let mouseX = canvas.width / 2;
+    window.addEventListener('mousemove', (e) => mouseX = e.clientX);
+    window.addEventListener('touchmove', (e) => {
+        mouseX = e.touches[0].clientX;
+        e.preventDefault();
+    }, {passive: false});
+
+    function startGame() {
+        player = new Player();
+        obstacles = [];
+        score = 0;
+        speed = 4;
+        gameActive = true;
+        frame = 0;
+        
+        startMenu.classList.add('hidden');
+        gameOverMenu.classList.add('hidden');
+        animate();
+    }
+
+    function animate() {
+        if (!gameActive) return;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Background effect (Matrix-like lines)
+        ctx.strokeStyle = '#111';
+        for(let i=0; i<canvas.width; i+=20) {
+            ctx.beginPath();
+            ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height);
+            ctx.stroke();
+        }
+
+        player.update(mouseX);
+        player.draw();
+
+        // Gestion des obstacles
+        if (frame % Math.max(10, 40 - Math.floor(score/5)) === 0) {
+            obstacles.push(new Obstacle(speed));
+        }
+
+        obstacles.forEach((obs, index) => {
+            obs.update();
+            obs.draw();
+
+            // Collision
+            if (player.x < obs.x + obs.width &&
+                player.x + player.width > obs.x &&
+                player.y < obs.y + obs.height &&
+                player.y + player.height > obs.y) {
+                endGame();
+            }
+
+            // Supprimer obstacles hors écran
+            if (obs.y > canvas.height) {
+                obstacles.splice(index, 1);
+                score++;
+                speed += 0.05;
+                scoreEl.innerText = score;
+                levelEl.innerText = Math.floor(score / 20) + 1;
+            }
+        });
+
+        frame++;
+        requestAnimationFrame(animate);
+    }
+
+    function endGame() {
+        gameActive = false;
+        finalScoreEl.innerText = score;
+        gameOverMenu.classList.remove('hidden');
+    }
 </script>
 
 </body>
