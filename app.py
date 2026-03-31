@@ -3,7 +3,6 @@ import random
 
 app = Flask(__name__)
 
-# Base de réponses simples
 RESPONSES = {
     "bonjour": ["Salut ! Comment puis-je t’aider en maths aujourd’hui ?", "Bonjour ! Pose-moi une question."],
     "merci": ["Avec plaisir !", "De rien !"],
@@ -13,13 +12,11 @@ RESPONSES = {
     "division": ["Division = partager un nombre en parts égales.", "Exemple : 12 / 4 = 3"],
 }
 
-# Fonction simple pour choisir une réponse
 def get_response(message):
     msg = message.lower()
     for key in RESPONSES:
         if key in msg:
             return random.choice(RESPONSES[key])
-    # Sinon réponse générique
     generic_responses = [
         "Intéressant, peux-tu préciser ?",
         "Je ne suis pas sûr, peux-tu reformuler ?",

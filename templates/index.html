@@ -7,10 +7,10 @@
 <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-<div class="chat-wrapper">
-    <div class="header">MathSchool</div>
-    <div id="chat-box"></div>
-    <div class="input-area">
+<div class="chat-container">
+    <header class="chat-header">MathSchool</header>
+    <main id="chat-box" class="chat-box"></main>
+    <div class="chat-input-area">
         <input type="text" id="message" placeholder="Pose ta question de maths..." autofocus>
         <button id="send-btn">Envoyer</button>
     </div>
@@ -21,36 +21,33 @@ const input = document.getElementById("message");
 const button = document.getElementById("send-btn");
 const chatBox = document.getElementById("chat-box");
 
-button.addEventListener("click", sendMessage);
-input.addEventListener("keypress", function(e) {
-    if(e.key === "Enter") sendMessage();
-});
-
-function addMessage(sender, text) {
-    const msg = document.createElement("div");
-    msg.classList.add("message", sender);
-    msg.innerText = text;
-    chatBox.appendChild(msg);
+function addMessage(sender, text){
+    const div = document.createElement("div");
+    div.classList.add("message", sender);
+    div.textContent = text;
+    chatBox.appendChild(div);
     chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-async function sendMessage() {
-    const message = input.value.trim();
-    if(!message) return;
-    addMessage("user", message);
+async function sendMessage(){
+    const msg = input.value.trim();
+    if(!msg) return;
+    addMessage("user", msg);
     input.value = "";
 
     const res = await fetch("/chat", {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({message})
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({message: msg})
     });
 
     const data = await res.json();
     addMessage("bot", data.response);
 }
 
-// Message de bienvenue
+button.addEventListener("click", sendMessage);
+input.addEventListener("keypress", (e) => {if(e.key==="Enter") sendMessage();});
+
 window.onload = () => {
     addMessage("bot", "Bienvenue sur MathSchool ! Pose une question de maths.");
 };
