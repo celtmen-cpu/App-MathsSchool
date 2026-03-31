@@ -9,10 +9,7 @@ def home():
 @app.route("/chat", methods=["POST"])
 def chat():
     user_message = request.json.get("message")
-    
-    # Pour l'instant : il répète juste
-    response = user_message
-
+    response = user_message  # Pour l'instant echo
     return jsonify({"response": response})
 
 if __name__ == "__main__":

@@ -1,55 +1,59 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-    <title>Chatbot</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MathSchool</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-
-<div class="chat-container">
+<div class="chat-wrapper">
+    <div class="header">MathSchool</div>
     <div id="chat-box"></div>
-
-    <div class="input-container">
-        <input type="text" id="message" placeholder="Tape ton message...">
-        <button onclick="sendMessage()">Envoyer</button>
+    <div class="input-area">
+        <input type="text" id="message" placeholder="Pose ta question de maths..." autofocus>
+        <button id="send-btn">Envoyer</button>
     </div>
 </div>
 
 <script>
-async function sendMessage() {
-    const input = document.getElementById("message");
-    const message = input.value;
+const input = document.getElementById("message");
+const button = document.getElementById("send-btn");
+const chatBox = document.getElementById("chat-box");
 
-    if (message.trim() === "") return;
-
-    addMessage("user", message);
-
-    const response = await fetch("/chat", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ message: message })
-    });
-
-    const data = await response.json();
-
-    addMessage("bot", data.response);
-
-    input.value = "";
-}
+button.addEventListener("click", sendMessage);
+input.addEventListener("keypress", function(e) {
+    if(e.key === "Enter") sendMessage();
+});
 
 function addMessage(sender, text) {
-    const chatBox = document.getElementById("chat-box");
-
     const msg = document.createElement("div");
     msg.classList.add("message", sender);
     msg.innerText = text;
-
     chatBox.appendChild(msg);
     chatBox.scrollTop = chatBox.scrollHeight;
 }
-</script>
 
+async function sendMessage() {
+    const message = input.value.trim();
+    if(!message) return;
+    addMessage("user", message);
+    input.value = "";
+
+    const res = await fetch("/chat", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({message})
+    });
+
+    const data = await res.json();
+    addMessage("bot", data.response);
+}
+
+// Message de bienvenue
+window.onload = () => {
+    addMessage("bot", "Bienvenue sur MathSchool ! Pose une question de maths.");
+};
+</script>
 </body>
 </html>
